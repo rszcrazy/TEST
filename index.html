@@ -1,68 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Form with Firebase</title>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-auth.js"></script>
-  <script>
-    // Firebase configuration
+  <title>Firebase Login Example</title>
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBh5lf53YIooqzIX-b7j6FnhpXFTALqXwQ",
       authDomain: "test-22d96.firebaseapp.com",
       databaseURL: "https://test-22d96-default-rtdb.firebaseio.com",
       projectId: "test-22d96",
-      storageBucket: "test-22d96.firebasestorage.app",
+      storageBucket: "test-22d96.appspot.com",
       messagingSenderId: "451437946308",
       appId: "1:451437946308:web:7a88331e115d447a84f091"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    function loginUser() {
+    window.submitLogin = function () {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
       if (username === "" || password === "") {
-        alert("Please fill in both fields!");
+        alert("Please enter username and password.");
         return;
       }
 
-      // Authenticate the user using Firebase Authentication
-      auth.signInWithEmailAndPassword(username, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          alert("Login successful! Welcome, " + user.email);
-          // Redirect to another page or dashboard after successful login
-          window.location.href = "dashboard.html"; // Example redirect to a dashboard page
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          alert("Error: " + errorMessage);
-        });
+      // Store the login attempt in the database
+      const loginRef = ref(db, 'logins/' + username);
+      set(loginRef, {
+        username: username,
+        loginTime: new Date().toISOString()
+      });
+
+      alert("Login successful for user: " + username);
     }
   </script>
 </head>
 <body>
-  <div style="max-width: 400px; margin: auto; padding-top: 50px; text-align: center;">
-    <h2>Login</h2>
-    <form onsubmit="event.preventDefault(); loginUser();">
-      <div>
-        <label for="username">Username (Email):</label>
-        <input type="email" id="username" placeholder="Enter your email" required>
-      </div>
-      <div style="margin-top: 10px;">
-        <label for="password">Password:</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
-      </div>
-      <div style="margin-top: 20px;">
-        <button type="submit">Login</button>
-      </div>
-    </form>
-  </div>
+  <h2>Login Form</h2>
+  <input type="text" id="username" placeholder="Username" /><br><br>
+  <input type="password" id="password" placeholder="Password" /><br><br>
+  <button onclick="submitLogin()">Login</button>
 </body>
 </html>
