@@ -1,49 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Firebase Login Example</title>
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBh5lf53YIooqzIX-b7j6FnhpXFTALqXwQ",
-      authDomain: "test-22d96.firebaseapp.com",
-      databaseURL: "https://test-22d96-default-rtdb.firebaseio.com",
-      projectId: "test-22d96",
-      storageBucket: "test-22d96.appspot.com",
-      messagingSenderId: "451437946308",
-      appId: "1:451437946308:web:7a88331e115d447a84f091"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.submitLogin = function () {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (username === "" || password === "") {
-        alert("Please enter username and password.");
-        return;
-      }
-
-      // Store the login attempt in the database
-      const loginRef = ref(db, 'logins/' + username);
-      set(loginRef, {
-        username: username,
-        loginTime: new Date().toISOString()
-      });
-
-      alert("Login successful for user: " + username);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indrapratha School PT1 Quiz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-  </script>
+    header {
+      background: #2d3e50;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+      width: 100%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    nav {
+      background: #3c4d63;
+      color: white;
+      padding: 10px;
+      width: 100%;
+      text-align: center;
+    }
+    nav a {
+      color: white;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .container {
+      margin: 30px auto;
+      padding: 25px;
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .hidden { display: none; }
+    input, select, button {
+      margin-top: 10px;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #question-box {
+      margin: 20px 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #options {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+    #options label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    #timer {
+      font-weight: bold;
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    footer {
+      background: #2d3e50;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    .correct { color: green; }
+    .incorrect { color: red; }
+  </style>
 </head>
 <body>
-  <h2>Login Form</h2>
-  <input type="text" id="username" placeholder="Username" /><br><br>
-  <input type="password" id="password" placeholder="Password" /><br><br>
-  <button onclick="submitLogin()">Login</button>
+  <header>
+    <h1>Indrapratha School - PT1 Online Quiz</h1>
+  </header>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Student Login</a>
+    <a href="#">Admin Panel</a>
+  </nav>
+
+  <div id="login-page" class="container">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username (e.g. student1)">
+    <input type="password" id="password" placeholder="Password (e.g. student123)">
+    <select id="student-class">
+      <option value="">Select Class</option>
+      <option value="1">Class 1</option>
+      <option value="2">Class 2</option>
+      <option value="3">Class 3</option>
+      <option value="4">Class 4</option>
+      <option value="5">Class 5</option>
+      <option value="6">Class 6</option>
+      <option value="7">Class 7</option>
+      <option value="8">Class 8</option>
+      <option value="9">Class 9</option>
+      <option value="10">Class 10</option>
+    </select>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="quiz-page" class="container hidden">
+    <h2>Quiz</h2>
+    <div id="question-box"></div>
+    <div id="options"></div>
+    <div id="timer">60</div>
+    <button onclick="nextQuestion()">Next</button>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Indrapratha School. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const allQuestions = {
+      1: [
+        { q: "What is 1 + 1?", o: ["1", "2", "3", "4"], a: "2" },
+        { q: "What color is an apple?", o: ["Red", "Blue", "Black", "Purple"], a: "Red" },
+        { q: "Which one is an animal?", o: ["Table", "Chair", "Dog", "Ball"], a: "Dog" },
+        { q: "What comes after 5?", o: ["6", "4", "7", "3"], a: "6" },
+        { q: "What do you wear on your feet?", o: ["Hat", "Socks", "Gloves", "Shirt"], a: "Socks" },
+        { q: "What shape is a wheel?", o: ["Square", "Triangle", "Circle", "Rectangle"], a: "Circle" },
+        { q: "What do we drink?", o: ["Sand", "Water", "Stone", "Wood"], a: "Water" },
+        { q: "How many fingers on one hand?", o: ["3", "5", "7", "9"], a: "5" },
+        { q: "Which is a bird?", o: ["Cow", "Hen", "Lion", "Tiger"], a: "Hen" },
+        { q: "What is the color of the sun?", o: ["Blue", "Red", "Yellow", "Green"], a: "Yellow" }
+      ]
+      // Add class 2 to 10 questions similarly...
+    };
+
+    let currentQuestion = 0;
+    let timer;
+    let timeLeft = 60;
+    let score = 0;
+    let currentUser = "";
+    let userClass = "";
+    let selectedQuestions = [];
+
+    function login() {
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const selectedClass = document.getElementById("student-class").value;
+      if (user && pass && selectedClass) {
+        currentUser = user;
+        userClass = selectedClass;
+        selectedQuestions = allQuestions[userClass];
+        if (!selectedQuestions) return alert("Questions not set for this class.");
+        document.getElementById("login-page").classList.add("hidden");
+        document.getElementById("quiz-page").classList.remove("hidden");
+        showQuestion();
+      } else {
+        alert("Please enter all details");
+      }
+    }
+
+    function showQuestion() {
+      if (currentQuestion >= selectedQuestions.length) {
+        alert(`Quiz Finished! Your score: ${score}/${selectedQuestions.length}`);
+        location.reload();
+        return;
+      }
+      const q = selectedQuestions[currentQuestion];
+      document.getElementById("question-box").innerText = `Q${currentQuestion + 1}. ${q.q}`;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+      q.o.forEach(opt => {
+        const label = document.createElement("label");
+        label.innerHTML = `<input type='radio' name='option' value='${opt}'> ${opt}`;
+        optionsDiv.appendChild(label);
+      });
+      timeLeft = 60;
+      document.getElementById("timer").innerText = timeLeft;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
+    function nextQuestion() {
+      clearInterval(timer);
+      const selected = document.querySelector("input[name='option']:checked");
+      const correct = selectedQuestions[currentQuestion].a;
+      const chosen = selected ? selected.value : "No Answer";
+      if (chosen === correct) score++;
+      currentQuestion++;
+      showQuestion();
+    }
+  </script>
 </body>
 </html>
