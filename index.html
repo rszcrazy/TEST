@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Indrapratha School PT1 Quiz</title>
   <style>
+    /* [your existing styles – unchanged] */
     body { font-family: Arial, sans-serif; margin: 0; background: #eef2f7; }
     header { background: #003366; color: white; padding: 15px 0; text-align: center; }
     nav { background: #004080; color: white; padding: 10px; text-align: center; }
     nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
     .container { margin: 30px auto; padding: 20px; background: white; border-radius: 10px; width: 400px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     .hidden { display: none; }
-    input, select, button { margin-top: 10px; padding: 10px; width: 90%; font-size: 16px; }
+    input, button, select { margin-top: 10px; padding: 10px; width: 90%; font-size: 16px; }
     #question-box { margin: 20px 0; font-size: 18px; }
-    #options { text-align: right; margin-bottom: 20px; }
-    #options label { display: block; margin-bottom: 10px; }
+    #options { text-align: left; margin-bottom: 20px; }
+    #options label { display: block; margin-bottom: 10px; text-align: left; }
     #timer { font-weight: bold; color: red; }
     footer { background: #003366; color: white; text-align: center; padding: 10px 0; position: fixed; bottom: 0; width: 100%; }
     .correct { color: green; }
@@ -41,7 +42,7 @@
     <h2>Login</h2>
     <input type="text" id="username" placeholder="Username (e.g. student1)"><br>
     <input type="password" id="password" placeholder="Password (e.g. student123)"><br>
-    <select id="classSelect">
+    <select id="student-class">
       <option value="1">Class 1</option>
       <option value="2">Class 2</option>
       <option value="3">Class 3</option>
@@ -67,7 +68,7 @@
     <h2>Admin Panel</h2>
     <p>Quiz Information:</p>
     <ul>
-      <li>Number of Questions: 10</li>
+      <li>Number of Questions: 10 per class</li>
       <li>Time per Question: 60 seconds</li>
       <li>Participants: 6 Students (student1 to student6)</li>
     </ul>
@@ -82,10 +83,15 @@
   </footer>
 
   <script>
+    // ✅ Backend URL
+    const backendURL = "https://54deb0ef-ea5d-4f4a-a7ed-18c1a749792d-00-1h3mwvshug6g5.sisko.replit.dev";
+
     const students = ["student1", "student2", "student3", "student4", "student5", "student6"];
     const studentPassword = "student123";
-    const quizzes = {
-      1: [
+    let selectedClass = "1";
+
+    const allQuestions = {
+      "1": [
         { question: "What is 1 + 1?", options: ["1", "2", "3", "4"], answer: "2" },
         { question: "What color is an apple?", options: ["Red", "Blue", "Black", "Purple"], answer: "Red" },
         { question: "Which one is an animal?", options: ["Table", "Chair", "Dog", "Ball"], answer: "Dog" },
@@ -96,16 +102,7 @@
         { question: "How many fingers on one hand?", options: ["3", "5", "7", "9"], answer: "5" },
         { question: "Which is a bird?", options: ["Cow", "Hen", "Lion", "Tiger"], answer: "Hen" },
         { question: "What is the color of the sun?", options: ["Blue", "Red", "Yellow", "Green"], answer: "Yellow" }
-      ],
-      2: [...Array(10).keys()].map(i => ({ question: `Class 2 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "A" })),
-      3: [...Array(10).keys()].map(i => ({ question: `Class 3 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "B" })),
-      4: [...Array(10).keys()].map(i => ({ question: `Class 4 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "C" })),
-      5: [...Array(10).keys()].map(i => ({ question: `Class 5 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "D" })),
-      6: [...Array(10).keys()].map(i => ({ question: `Class 6 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "A" })),
-      7: [...Array(10).keys()].map(i => ({ question: `Class 7 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "B" })),
-      8: [...Array(10).keys()].map(i => ({ question: `Class 8 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "C" })),
-      9: [...Array(10).keys()].map(i => ({ question: `Class 9 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "D" })),
-      10: [...Array(10).keys()].map(i => ({ question: `Class 10 Q${i+1}`, options: ["A", "B", "C", "D"], answer: "A" }))
+      ]
     };
 
     let currentQuestion = 0;
@@ -113,7 +110,6 @@
     let timeLeft = 60;
     let score = 0;
     let currentUser = "";
-    let selectedClass = 1;
     let answerTrack = [];
     const studentResults = [];
     let questions = [];
@@ -121,7 +117,8 @@
     function login() {
       const user = document.getElementById("username").value.trim();
       const pass = document.getElementById("password").value.trim();
-      selectedClass = parseInt(document.getElementById("classSelect").value);
+      selectedClass = document.getElementById("student-class").value;
+
       if (user === "admin" && pass === "admin123") {
         document.getElementById("login-page").classList.add("hidden");
         document.getElementById("admin-page").classList.remove("hidden");
@@ -134,7 +131,7 @@
         score = 0;
         currentQuestion = 0;
         answerTrack = [];
-        questions = quizzes[selectedClass];
+        questions = allQuestions[selectedClass];
         document.getElementById("login-page").classList.add("hidden");
         document.getElementById("quiz-page").classList.remove("hidden");
         showQuestion();
@@ -146,6 +143,7 @@
     function showQuestion() {
       if (currentQuestion >= questions.length) {
         alert(`Quiz Finished! Your score: ${score}/10`);
+        saveScoreToBackend(currentUser, score); // ✅ Save to Replit DB
         studentResults.push({ name: currentUser, score: score, details: [...answerTrack] });
         document.getElementById("quiz-page").classList.add("hidden");
         document.getElementById("login-page").classList.remove("hidden");
@@ -154,13 +152,12 @@
         return;
       }
       const q = questions[currentQuestion];
-      document.getElementById("question-box").innerText = `${currentQuestion + 1}. ${q.question}`;
+      document.getElementById("question-box").innerText = `Q${currentQuestion + 1}. ${q.question}`;
       const optionsDiv = document.getElementById("options");
       optionsDiv.innerHTML = "";
-      q.options.forEach((opt, index) => {
+      q.options.forEach((opt) => {
         const label = document.createElement("label");
         label.innerHTML = `<input type='radio' name='option' value='${opt}'> ${opt}`;
-        label.onclick = nextQuestion;
         optionsDiv.appendChild(label);
       });
       timeLeft = 60;
@@ -204,8 +201,20 @@
       const leaderboard = document.getElementById("leaderboard");
       const sorted = [...studentResults].sort((a, b) => b.score - a.score);
       leaderboard.innerHTML = `<ul>` +
-        sorted.map((r, i) => `<li>${r.name} - ${r.score}/10</li>`).join("") +
+        sorted.map((r) => `<li>${r.name} - ${r.score}/10</li>`).join("") +
         `</ul>`;
+    }
+
+    // ✅ Function to send score to backend
+    function saveScoreToBackend(username, score) {
+      fetch(`${backendURL}/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, score: score })
+      })
+      .then(res => res.json())
+      .then(data => console.log("Saved to backend:", data))
+      .catch(err => console.error("Error saving:", err));
     }
   </script>
 </body>
