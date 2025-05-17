@@ -157,7 +157,7 @@
       optionsDiv.innerHTML = "";
       q.options.forEach((opt) => {
         const label = document.createElement("label");
-        label.innerHTML = `<input type='radio' name='option' value='${opt}'> ${opt}`;
+        label.innerHTML = `<input type='radio' name='option' value='${opt}' onchange='autoNext()'> ${opt}`;
         optionsDiv.appendChild(label);
       });
       timeLeft = 60;
@@ -171,6 +171,12 @@
           nextQuestion();
         }
       }, 1000);
+    }
+
+    function autoNext() {
+      setTimeout(() => {
+        nextQuestion();
+      }, 1000); // 1 second delay before moving to next question
     }
 
     function nextQuestion() {
